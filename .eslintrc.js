@@ -22,6 +22,7 @@ module.exports = {
     },
   },
   rules: {
+    'eslint-comments/require-description': ['error', { ignore: ['eslint-disable-next-line'] }],
     '@typescript-eslint/no-unused-vars': [
       'error',
       {

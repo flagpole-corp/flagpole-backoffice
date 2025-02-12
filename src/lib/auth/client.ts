@@ -1,20 +1,9 @@
 'use client';
 
+import type { ApiResponse, AuthResponse } from '@/types/auth';
 import type { User } from '@/types/user';
 
-function generateToken(): string {
-  const arr = new Uint8Array(12);
-  window.crypto.getRandomValues(arr);
-  return Array.from(arr, (v) => v.toString(16).padStart(2, '0')).join('');
-}
-
-const user = {
-  id: 'USR-000',
-  avatar: '/assets/avatar.png',
-  firstName: 'Sofia',
-  lastName: 'Rivers',
-  email: 'sofia@devias.io',
-} satisfies User;
+import api from '../axios';
 
 export interface SignUpParams {
   firstName: string;
@@ -37,61 +26,108 @@ export interface ResetPasswordParams {
 }
 
 class AuthClient {
-  async signUp(_: SignUpParams): Promise<{ error?: string }> {
-    // Make API request
+  async signInWithPassword(params: SignInWithPasswordParams): Promise<ApiResponse<AuthResponse>> {
+    try {
+      const { data } = await api.post<AuthResponse>('/api/auth/login', params);
 
-    // We do not handle the API, so we'll just generate a token and store it in localStorage.
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
+      if (data.access_token) {
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem(
+          'user',
+          JSON.stringify({
+            id: data.user.id,
+            email: data.user.email,
+            isInternal: data.user.isInternal,
+            internalPermissions: data.user.internalPermissions,
+          })
+        );
+      }
 
-    return {};
-  }
-
-  async signInWithOAuth(_: SignInWithOAuthParams): Promise<{ error?: string }> {
-    return { error: 'Social authentication not implemented' };
-  }
-
-  async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
-    const { email, password } = params;
-
-    // Make API request
-
-    // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
-    if (email !== 'sofia@devias.io' || password !== 'Secret1') {
-      return { error: 'Invalid credentials' };
+      return { data };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Failed to sign in',
+      };
     }
-
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-
-    return {};
   }
 
-  async resetPassword(_: ResetPasswordParams): Promise<{ error?: string }> {
-    return { error: 'Password reset not implemented' };
+  async signInWithOAuth(params: SignInWithOAuthParams): Promise<ApiResponse<void>> {
+    try {
+      const { provider } = params;
+      window.location.href = `/api/auth/${provider}`;
+      return {};
+    } catch (error) {
+      return { error: 'Social authentication failed' };
+    }
   }
 
-  async updatePassword(_: ResetPasswordParams): Promise<{ error?: string }> {
-    return { error: 'Update reset not implemented' };
+  async resetPassword(params: ResetPasswordParams): Promise<ApiResponse<void>> {
+    try {
+      await api.post('/api/auth/forgot-password', params);
+      return {};
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Failed to send reset password email',
+      };
+    }
+  }
+
+  async updatePassword(token: string, password: string): Promise<ApiResponse<void>> {
+    try {
+      await api.post('/api/auth/reset-password', { token, password });
+      return {};
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Failed to update password',
+      };
+    }
   }
 
   async getUser(): Promise<{ data?: User | null; error?: string }> {
-    // Make API request
+    try {
+      if (!this.isAuthenticated()) {
+        return { data: null };
+      }
 
-    // We do not handle the API, so just check if we have a token in localStorage.
-    const token = localStorage.getItem('custom-auth-token');
-
-    if (!token) {
-      return { data: null };
+      const { data } = await api.get<User>('/api/auth/me');
+      return { data };
+    } catch (error) {
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+        return { data: null };
+      }
+      return {
+        error: error instanceof Error ? error.message : 'Failed to get user data',
+      };
     }
-
-    return { data: user };
   }
 
-  async signOut(): Promise<{ error?: string }> {
-    localStorage.removeItem('custom-auth-token');
+  async signOut(): Promise<ApiResponse<void>> {
+    try {
+      await api.post('/api/auth/logout');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      return {};
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Failed to sign out',
+      };
+    }
+  }
 
-    return {};
+  isAuthenticated(): boolean {
+    return Boolean(localStorage.getItem('token'));
+  }
+
+  isInternalUser(): boolean {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return false;
+
+    try {
+      const user = JSON.parse(userStr) as Pick<User, 'isInternal'>;
+      return user.isInternal;
+    } catch {
+      return false;
+    }
   }
 }
 

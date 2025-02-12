@@ -5,51 +5,62 @@ import { useRouter } from 'next/navigation';
 import Alert from '@mui/material/Alert';
 
 import { paths } from '@/paths';
-import { logger } from '@/lib/default-logger';
 import { useUser } from '@/hooks/use-user';
 
 export interface AuthGuardProps {
   children: React.ReactNode;
+  requireInternal?: boolean;
 }
 
-export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | null {
+export function AuthGuard({ children, requireInternal = false }: AuthGuardProps): React.JSX.Element | null {
   const router = useRouter();
   const { user, error, isLoading } = useUser();
   const [isChecking, setIsChecking] = React.useState<boolean>(true);
 
-  const checkPermissions = async (): Promise<void> => {
+  const checkPermissions = React.useCallback(async (): Promise<void> => {
     if (isLoading) {
       return;
     }
 
-    if (error) {
-      setIsChecking(false);
-      return;
-    }
-
-    if (!user) {
-      logger.debug('[AuthGuard]: User is not logged in, redirecting to sign in');
+    // If there's no user and we're done loading, redirect
+    if (!isLoading && !user) {
       router.replace(paths.auth.signIn);
       return;
     }
 
-    setIsChecking(false);
-  };
+    // Check internal access if required
+    if (!isLoading && user && requireInternal && !user.isInternal) {
+      router.replace(paths.dashboard.overview);
+      return;
+    }
+
+    // Only set checking to false if we have a user or if there's an error
+    if (!isLoading && (user || error)) {
+      setIsChecking(false);
+    }
+  }, [isLoading, user, error, requireInternal, router]);
 
   React.useEffect(() => {
-    checkPermissions().catch(() => {
-      // noop
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Expected
-  }, [user, error, isLoading]);
+    void (async () => {
+      try {
+        await checkPermissions();
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error('Error checking permissions:', err);
+      }
+    })();
+  }, [checkPermissions]);
 
-  if (isChecking) {
+  // Show nothing while checking
+  if (isChecking || isLoading) {
     return null;
   }
 
+  // Show error if there is one
   if (error) {
     return <Alert color="error">{error}</Alert>;
   }
 
-  return <React.Fragment>{children}</React.Fragment>;
+  // If we're not checking and have a user, show content
+  return <>{children}</>;
 }
