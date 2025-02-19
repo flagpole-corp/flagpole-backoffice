@@ -3,6 +3,8 @@ import type { Viewport } from 'next';
 
 import '@/styles/global.css';
 
+import { TanstackProvider } from '@/providers/query-client';
+
 import { UserProvider } from '@/contexts/user-context';
 import { LocalizationProvider } from '@/components/core/localization-provider';
 import { ThemeProvider } from '@/components/core/theme-provider/theme-provider';
@@ -19,7 +21,9 @@ export default function Layout({ children }: LayoutProps): React.JSX.Element {
       <body>
         <LocalizationProvider>
           <UserProvider>
-            <ThemeProvider>{children}</ThemeProvider>
+            <TanstackProvider>
+              <ThemeProvider>{children}</ThemeProvider>
+            </TanstackProvider>
           </UserProvider>
         </LocalizationProvider>
       </body>

@@ -4,7 +4,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import { MagnifyingGlass as MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr/MagnifyingGlass';
 
-export function CustomersFilters(): React.JSX.Element {
+export function OrganizationsFilters(): React.JSX.Element {
   return (
     <Card sx={{ p: 2 }}>
       <OutlinedInput
@@ -16,7 +16,7 @@ export function CustomersFilters(): React.JSX.Element {
             <MagnifyingGlassIcon fontSize="var(--icon-fontSize-md)" />
           </InputAdornment>
         }
-        sx={{ maxWidth: '500px' }}
+        sx={{ maxWidth: '500px', float: 'right' }}
       />
     </Card>
   );

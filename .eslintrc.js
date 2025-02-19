@@ -52,7 +52,7 @@ module.exports = {
       {
         cases: {
           kebabCase: true, // personal style
-          pascalCase: true,
+          // pascalCase: true,
         },
       },
     ],
