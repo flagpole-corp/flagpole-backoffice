@@ -24,11 +24,12 @@ interface OrganizationResponse {
   };
 }
 
-interface UseOrganizationsOptions {
+export interface UseOrganizationsOptions {
   includeDetails?: boolean;
   status?: string[];
   page?: number;
   limit?: number;
+  search?: string;
 }
 
 export const organizationKeys = {
@@ -38,18 +39,29 @@ export const organizationKeys = {
 };
 
 export const useOrganizations = (options: UseOrganizationsOptions = {}): UseQueryResult<OrganizationResponse> => {
-  const { page = 1, limit = 50, status, includeDetails = false } = options;
+  const { page = 1, limit = 50, status, includeDetails = false, search } = options;
 
   return useQuery({
-    queryKey: organizationKeys.list({ page, limit, status, includeDetails }),
+    queryKey: organizationKeys.list({ page, limit, status, includeDetails, search }),
     queryFn: async () => {
+      const params: Record<string, unknown> = {
+        page,
+        limit,
+        includeDetails,
+      };
+
+      // Only add status if it has items
+      if (status && status.length > 0) {
+        params.status = status;
+      }
+
+      // Add search parameter if provided
+      if (search) {
+        params.search = search;
+      }
+
       const { data } = await api.get<OrganizationResponse>('/api/organizations', {
-        params: {
-          page,
-          limit,
-          status,
-          includeDetails,
-        },
+        params,
       });
       return data;
     },
