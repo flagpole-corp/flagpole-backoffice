@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 
 import api from '../axios';
@@ -11,6 +11,7 @@ export interface Organization {
     status: string;
     plan: string;
   };
+  uodatedAt?: Date;
   createdAt: Date;
 }
 
@@ -66,5 +67,38 @@ export const useOrganizations = (options: UseOrganizationsOptions = {}): UseQuer
       return data;
     },
     placeholderData: keepPreviousData,
+  });
+};
+
+interface ActivateOrganizationOptions {
+  activateUsers?: boolean;
+}
+
+export const useActivateOrganization = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      organizationId,
+      options = { activateUsers: true },
+    }: {
+      organizationId: string;
+      options?: ActivateOrganizationOptions;
+    }) => {
+      const { data } = await api.patch<Organization>(`/api/organizations/${organizationId}/activate`, options);
+      return data;
+    },
+    onSuccess: async () => {
+      // Invalidate all organization list queries without specific filters
+      await queryClient.invalidateQueries({
+        queryKey: organizationKeys.all,
+      });
+      // toast.success('Organization activated successfully');
+    },
+    onError: (error) => {
+      // eslint-disable-next-line
+      console.error('Failed to activate organization:', error);
+      // toast.error(error.response?.data?.message || 'Failed to activate organization. Please try again.');
+    },
   });
 };

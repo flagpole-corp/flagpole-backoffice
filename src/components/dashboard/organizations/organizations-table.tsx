@@ -9,6 +9,8 @@ import dayjs from 'dayjs';
 
 import type { Organization } from '@/lib/organizations/use-organizations';
 
+import { ActionMenu } from '../../action-menu';
+
 interface OrganizationsTableProps {
   count?: number;
   page?: number;
@@ -17,6 +19,9 @@ interface OrganizationsTableProps {
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (pageSize: number) => void;
   loading?: boolean;
+  onViewOrganization?: (id: string) => void;
+  onEditOrganization?: (id: string) => void;
+  onDeleteOrganization?: (id: string) => void;
 }
 
 export function OrganizationsTable({
@@ -27,6 +32,9 @@ export function OrganizationsTable({
   onPageChange,
   onPageSizeChange,
   loading = false,
+  onViewOrganization,
+  onEditOrganization,
+  onDeleteOrganization,
 }: OrganizationsTableProps): React.JSX.Element {
   const columns: GridColDef[] = [
     {
@@ -63,6 +71,21 @@ export function OrganizationsTable({
       width: 150,
       renderCell: (params: GridRenderCellParams<Organization>) => dayjs(params.row.createdAt).format('MMM D, YYYY'),
     },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      sortable: false,
+      filterable: false,
+      renderCell: (params: GridRenderCellParams<Organization>) => (
+        <ActionMenu
+          row={params.row}
+          onViewOrganization={onViewOrganization}
+          onEditOrganization={onEditOrganization}
+          onDeleteOrganization={onDeleteOrganization}
+        />
+      ),
+    },
   ];
 
   const handlePaginationModelChange = React.useCallback(
@@ -84,6 +107,8 @@ export function OrganizationsTable({
           columns={columns}
           rowCount={count}
           loading={loading}
+          disableColumnFilter
+          disableColumnMenu
           pageSizeOptions={[10, 25, 50]}
           paginationMode="server"
           paginationModel={{
