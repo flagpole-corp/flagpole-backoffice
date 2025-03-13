@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import RouterLink from 'next/link';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -19,8 +19,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 
 import { paths } from '@/paths';
-import { authClient } from '@/lib/auth/client';
-import { useUser } from '@/hooks/use-user';
+
+// import { authClient } from '@/lib/auth/client';
+// import { useUser } from '@/hooks/use-user';
 
 const schema = zod.object({
   firstName: zod.string().min(1, { message: 'First name is required' }),
@@ -35,40 +36,45 @@ type Values = zod.infer<typeof schema>;
 const defaultValues = { firstName: '', lastName: '', email: '', password: '', terms: false } satisfies Values;
 
 export function SignUpForm(): React.JSX.Element {
-  const router = useRouter();
+  // const router = useRouter();
 
-  const { checkSession } = useUser();
+  // const { checkSession } = useUser();
 
-  const [isPending, setIsPending] = React.useState<boolean>(false);
+  const [isPending] = React.useState<boolean>(false);
 
   const {
     control,
     handleSubmit,
-    setError,
+    // setError,
     formState: { errors },
   } = useForm<Values>({ defaultValues, resolver: zodResolver(schema) });
 
-  const onSubmit = React.useCallback(
-    async (values: Values): Promise<void> => {
-      setIsPending(true);
+  const onSubmit = () => {
+    // eslint-disable-next-line
+    console.log('wip');
+  };
+  // const onSubmit = React.useCallback(
+  //   // async (values: Values): Promise<void> => {
+  //   //   setIsPending(true);
 
-      const { error } = await authClient.signUp(values);
+  //   //   const { error } = await authClient.signUp(values);
 
-      if (error) {
-        setError('root', { type: 'server', message: error });
-        setIsPending(false);
-        return;
-      }
+  //   //   if (error) {
+  //   //     setError('root', { type: 'server', message: error });
+  //   //     setIsPending(false);
+  //   //     return;
+  //   //   }
 
-      // Refresh the auth state
-      await checkSession?.();
+  //   //   // Refresh the auth state
+  //   //   await checkSession?.();
 
-      // UserProvider, for this case, will not refresh the router
-      // After refresh, GuestGuard will handle the redirect
-      router.refresh();
-    },
-    [checkSession, router, setError]
-  );
+  //   //   // UserProvider, for this case, will not refresh the router
+  //   //   // After refresh, GuestGuard will handle the redirect
+  //   //   router.refresh();
+  //   // },
+  //   console.log('wip')
+  //   [checkSession, router, setError]
+  // );
 
   return (
     <Stack spacing={3}>
