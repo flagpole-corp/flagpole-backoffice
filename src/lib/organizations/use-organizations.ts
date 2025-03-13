@@ -7,6 +7,12 @@ export interface Organization {
   _id: string;
   name: string;
   slug: string;
+  demoRequest?: {
+    name: string;
+    email: string;
+    domain: string;
+    requestedAt?: string;
+  };
   subscription: {
     status: string;
     plan: string;

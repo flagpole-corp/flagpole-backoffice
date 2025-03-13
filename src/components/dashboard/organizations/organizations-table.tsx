@@ -39,13 +39,22 @@ export function OrganizationsTable({
   const columns: GridColDef[] = [
     {
       field: 'name',
-      headerName: 'Name',
+      headerName: 'Organization Name',
       width: 200,
     },
     {
       field: 'slug',
       headerName: 'Slug',
       width: 200,
+    },
+    {
+      field: 'demoRequest',
+      headerName: 'Who Requested',
+      renderCell: (params: GridRenderCellParams<Organization>) => (
+        <>
+          {params.row?.demoRequest?.name} - {params.row?.demoRequest?.email}
+        </>
+      ),
     },
     {
       field: 'subscription',
