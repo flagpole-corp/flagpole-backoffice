@@ -1,10 +1,10 @@
 {
-  "name": "material-kit-react",
-  "version": "4.0.0",
-  "author": "Devias",
+  "name": "flagpole-backoffice",
+  "version": "0.0.1",
+  "author": "Flagpole backoffice",
   "licence": "MIT",
-  "homepage": "https://devias.io",
-  "private": false,
+  "homepage": "https://backoffice.useflagpole.dev",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
