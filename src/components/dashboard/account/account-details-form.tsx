@@ -9,19 +9,16 @@ import CardHeader from '@mui/material/CardHeader';
 import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import Select from '@mui/material/Select';
 import Grid from '@mui/material/Unstable_Grid2';
+import { useQueryClient } from '@tanstack/react-query';
 
-const states = [
-  { value: 'alabama', label: 'Alabama' },
-  { value: 'new-york', label: 'New York' },
-  { value: 'san-francisco', label: 'San Francisco' },
-  { value: 'los-angeles', label: 'Los Angeles' },
-] as const;
+import { type User } from '@/types/user';
+import { authKeys } from '@/lib/auth/client';
 
 export function AccountDetailsForm(): React.JSX.Element {
+  const queryClient = useQueryClient();
+  const me = queryClient.getQueryData<User | null>(authKeys.user());
   return (
     <form
       onSubmit={(event) => {
@@ -36,50 +33,28 @@ export function AccountDetailsForm(): React.JSX.Element {
             <Grid md={6} xs={12}>
               <FormControl fullWidth required>
                 <InputLabel>First name</InputLabel>
-                <OutlinedInput defaultValue="" label="First name" name="firstName" />
+                <OutlinedInput defaultValue={me?.firstName} label="First name" name="firstName" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth required>
                 <InputLabel>Last name</InputLabel>
-                <OutlinedInput defaultValue="" label="Last name" name="lastName" />
+                <OutlinedInput defaultValue={me?.lastName} label="Last name" name="lastName" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth required>
                 <InputLabel>Email address</InputLabel>
-                <OutlinedInput defaultValue="" label="Email address" name="email" />
-              </FormControl>
-            </Grid>
-            <Grid md={6} xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Phone number</InputLabel>
-                <OutlinedInput label="Phone number" name="phone" type="tel" />
-              </FormControl>
-            </Grid>
-            <Grid md={6} xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>State</InputLabel>
-                <Select defaultValue="New York" label="State" name="state" variant="outlined">
-                  {states.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid md={6} xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>City</InputLabel>
-                <OutlinedInput label="City" />
+                <OutlinedInput defaultValue={me?.email} label="Email address" name="email" />
               </FormControl>
             </Grid>
           </Grid>
         </CardContent>
         <Divider />
         <CardActions sx={{ justifyContent: 'flex-end' }}>
-          <Button variant="contained">Save details</Button>
+          <Button disabled variant="contained">
+            Save details
+          </Button>
         </CardActions>
       </Card>
     </form>

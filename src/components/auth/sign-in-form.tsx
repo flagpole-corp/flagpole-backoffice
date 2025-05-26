@@ -19,8 +19,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 
 import { paths } from '@/paths';
-import { authClient } from '@/lib/auth/client';
-import { useUser } from '@/hooks/use-user';
+import { useSignInWithPassword } from '@/lib/auth/client'; // Updated import
 
 const schema = zod.object({
   email: zod.string().min(1, { message: 'Email is required' }).email(),
@@ -33,12 +32,9 @@ const defaultValues = { email: '', password: '' } satisfies Values;
 
 export function SignInForm(): React.JSX.Element {
   const router = useRouter();
-
-  const { checkSession } = useUser();
+  const { mutate: signIn, isPending } = useSignInWithPassword();
 
   const [showPassword, setShowPassword] = React.useState<boolean>();
-
-  const [isPending, setIsPending] = React.useState<boolean>(false);
 
   const {
     control,
@@ -48,25 +44,21 @@ export function SignInForm(): React.JSX.Element {
   } = useForm<Values>({ defaultValues, resolver: zodResolver(schema) });
 
   const onSubmit = React.useCallback(
-    async (values: Values): Promise<void> => {
-      setIsPending(true);
-
-      const { error } = await authClient.signInWithPassword(values);
-
-      if (error) {
-        setError('root', { type: 'server', message: error });
-        setIsPending(false);
-        return;
-      }
-
-      // Refresh the auth state
-      await checkSession?.();
-
-      // UserProvider, for this case, will not refresh the router
-      // After refresh, GuestGuard will handle the redirect
-      router.refresh();
+    (values: Values): void => {
+      signIn(values, {
+        onSuccess: () => {
+          // After successful sign in, refresh the router
+          router.refresh();
+        },
+        onError: (err) => {
+          setError('root', {
+            type: 'server',
+            message: err instanceof Error ? err.message : 'Sign in failed',
+          });
+        },
+      });
     },
-    [checkSession, router, setError]
+    [signIn, router, setError]
   );
 
   return (
@@ -134,7 +126,7 @@ export function SignInForm(): React.JSX.Element {
           </div>
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={isPending} type="submit" variant="contained">
-            Sign in
+            {isPending ? 'Signing in...' : 'Sign in'}
           </Button>
         </Stack>
       </form>

@@ -1,6 +1,7 @@
 /* eslint-disable no-console -- Allow */
 
 // NOTE: A tracking system such as Sentry should replace the console
+// need bugdget haha :(
 
 export const LogLevel = { NONE: 'NONE', ERROR: 'ERROR', WARN: 'WARN', DEBUG: 'DEBUG', ALL: 'ALL' } as const;
 
