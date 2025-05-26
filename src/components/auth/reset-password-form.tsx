@@ -13,16 +13,18 @@ import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 
-import { authClient } from '@/lib/auth/client';
+import { useResetPassword } from '@/lib/auth/client'; // Import your custom hook
 
-const schema = zod.object({ email: zod.string().min(1, { message: 'Email is required' }).email() });
+const schema = zod.object({
+  email: zod.string().min(1, { message: 'Email is required' }).email(),
+});
 
 type Values = zod.infer<typeof schema>;
 
 const defaultValues = { email: '' } satisfies Values;
 
 export function ResetPasswordForm(): React.JSX.Element {
-  const [isPending, setIsPending] = React.useState<boolean>(false);
+  const { mutate: resetPassword, isPending } = useResetPassword();
 
   const {
     control,
@@ -32,22 +34,17 @@ export function ResetPasswordForm(): React.JSX.Element {
   } = useForm<Values>({ defaultValues, resolver: zodResolver(schema) });
 
   const onSubmit = React.useCallback(
-    async (values: Values): Promise<void> => {
-      setIsPending(true);
-
-      const { error } = await authClient.resetPassword(values);
-
-      if (error) {
-        setError('root', { type: 'server', message: error });
-        setIsPending(false);
-        return;
-      }
-
-      setIsPending(false);
-
-      // Redirect to confirm password reset
+    (values: Values): void => {
+      resetPassword(values, {
+        onError: (err) => {
+          setError('root', {
+            type: 'server',
+            message: err instanceof Error ? err.message : 'Failed to send reset email',
+          });
+        },
+      });
     },
-    [setError]
+    [resetPassword, setError]
   );
 
   return (
@@ -68,7 +65,7 @@ export function ResetPasswordForm(): React.JSX.Element {
           />
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={isPending} type="submit" variant="contained">
-            Send recovery link
+            {isPending ? 'Sending...' : 'Send recovery link'}
           </Button>
         </Stack>
       </form>
