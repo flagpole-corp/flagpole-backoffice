@@ -125,7 +125,7 @@ export function SignInForm(): React.JSX.Element {
             </Link>
           </div>
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-          <Button disabled={isPending} type="submit" variant="contained">
+          <Button disabled={isPending} type="submit" variant="outlined">
             {isPending ? 'Signing in...' : 'Sign in'}
           </Button>
         </Stack>
