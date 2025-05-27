@@ -76,7 +76,7 @@ export const colorSchemes = {
       action: { disabledBackground: 'rgba(0, 0, 0, 0.06)' },
       background: {
         default: 'var(--mui-palette-common-white)',
-        defaultChannel: '255 255 255',
+        // defaultChannel: '255 255 255',
         paper: 'var(--mui-palette-common-white)',
         paperChannel: '255 255 255',
         level1: 'var(--mui-palette-neutral-50)',
